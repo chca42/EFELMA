@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ColorSeek">
+        <attr name="orientation" format="enum" >
+            <enum name="horizontal" value="0"/>
+            <enum name="vertical" value="1"/>
+        </attr>
+        <attr name="mode" format="enum">
+            <enum name="chroma_color_pic" value="0" />
+            <enum name="intensity_pic" value="1" />
+            <enum name="brightness_pic" value="2" />
+        </attr>
+    </declare-styleable>
+</resources>

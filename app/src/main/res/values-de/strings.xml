@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">EFELMA</string>
+
+    <string name="about_free_software_title">Über freie Software</string>
+    <string name="about_free_software_link">http://www.gnu.org/philosophy/free-sw.de.html</string>
+    <string name="about_fellowshp_title">Über fsfe Fellowship</string>
+    <string name="about_fellowship_link">https://fsfe.org/fellowship/index.de.html</string>
+</resources>

@@ -39,6 +39,11 @@ import java.net.UnknownHostException;
 
 public class PlussyDisplay {
     private static final String TAG = PlussyDisplay.class.toString();
+
+    public static final int NOT_CONNECTED = 0;
+    public static final int CONNECTION_ESTABLISHED = 1;
+    public static final int CONNECTION_FAILED = 2;
+
     private static final String BROADCAST_IP = "255.255.255.255";
     private static final int UDP_PORT = 60000;
     private static final int TCP_PORT = 60000;
@@ -46,6 +51,7 @@ public class PlussyDisplay {
     private volatile boolean run = false;
     private Thread networkTread;
     private OnLedChangedListener onLedChangedListener = null;
+    private OnConnectinChangedListener onConnectionChagedListener = null;
 
     PrintWriter out;
     BufferedReader in;
@@ -54,7 +60,24 @@ public class PlussyDisplay {
         void onChange(int led, int color);
     }
 
-    class ReplyRunnable implements Runnable {
+    public interface OnConnectinChangedListener {
+        void onChange(int state);
+    }
+
+    private class ConnectionChangedRunnable implements Runnable {
+        int state = 0;
+        ConnectionChangedRunnable(int state) {
+            this.state = state;
+        }
+        @Override
+        public void run() {
+            if (onConnectionChagedListener != null) {
+                onConnectionChagedListener.onChange(state);
+            }
+        }
+    }
+
+    private class ReplyRunnable implements Runnable {
         String message;
         public ReplyRunnable(String message) {
             this.message = message;
@@ -76,7 +99,7 @@ public class PlussyDisplay {
         }
     }
 
-    class NetworkRunnable implements Runnable {
+    private class NetworkRunnable implements Runnable {
         Handler handler = new Handler();
         private InetAddress listenToSetupBroadcast() {
             byte[] rBuf = new byte[50];
@@ -99,7 +122,7 @@ public class PlussyDisplay {
                                 packet.getAddress().getHostAddress());
                     }
                 } catch (InterruptedIOException e) {
-                    Log.e(TAG, "Error: Timeout while waiting for setup packet.");
+                    //Log.e(TAG, "Error: Timeout while waiting for setup packet.");
                 } catch (UnknownHostException e) {
                     Log.e(TAG, "Error: Host not known.");
                 } catch (IOException e) {
@@ -115,6 +138,7 @@ public class PlussyDisplay {
             Socket socket = null;
             try {
                 socket = new Socket(serverAddress, TCP_PORT);
+                handler.post(new ConnectionChangedRunnable(CONNECTION_ESTABLISHED));
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             } catch(Exception e) {
@@ -130,7 +154,9 @@ public class PlussyDisplay {
                 handler.post(new ReplyRunnable(message));
             }
             try {
-                socket.close();
+                if(socket != null) {
+                    socket.close();
+                }
             }catch (IOException e) {
                 e.printStackTrace();
             }
@@ -170,5 +196,9 @@ public class PlussyDisplay {
         String command = "m" + ledS + Integer.toHexString(color).substring(2, 8);
         out.println(command);
         out.flush();
+    }
+
+    public void setOnConnectionChagedListener(OnConnectinChangedListener connectionChagedListener) {
+        this.onConnectionChagedListener = connectionChagedListener;
     }
 }

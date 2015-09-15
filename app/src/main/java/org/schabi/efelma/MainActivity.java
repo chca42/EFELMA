@@ -1,9 +1,15 @@
 package org.schabi.efelma;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 /**
  * Created by Christian Schabesberger on 13.09.15.
@@ -27,17 +33,23 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = MainActivity.class.toString();
+
     private PlussyDisplay plussyDisplay;
     private PlussyLedView plussyView;
     private ColorSeek colorSeek;
     private ColorSeek intesitySeek;
     private ColorSeek brightnessSeek;
+    private ProgressBar connectionProgressBar;
+    private ImageView connectionEstablishedView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         plussyDisplay = new PlussyDisplay();
+        connectionProgressBar = (ProgressBar) findViewById(R.id.connectionProgressBar);
+        connectionEstablishedView = (ImageView) findViewById(R.id.connectoinEstablishedView);
         plussyView = (PlussyLedView) findViewById(R.id.plussyView);
         plussyView.setMapping(new int[] {
                          0x13, 0x12,
@@ -76,6 +88,15 @@ public class MainActivity extends AppCompatActivity {
                 plussyDisplay.setLed(led, color);
             }
         });
+        plussyDisplay.setOnConnectionChagedListener(new PlussyDisplay.OnConnectinChangedListener() {
+            @Override
+            public void onChange(int state) {
+                if(state == PlussyDisplay.CONNECTION_ESTABLISHED) {
+                    connectionProgressBar.setVisibility(View.GONE);
+                    connectionEstablishedView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 
     @Override
@@ -102,7 +123,20 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        Intent intent = new Intent(Intent.ACTION_VIEW);
         int id = item.getItemId();
+        switch(id) {
+            case R.id.menu_item_about_free_software:
+                intent.setData(Uri.parse(getString(R.string.about_free_software_link)));
+                startActivity(intent);
+                break;
+            case R.id.menu_item_about_fellowship:
+                intent.setData(Uri.parse(getString(R.string.about_fellowship_link)));
+                startActivity(intent);
+                break;
+            default:
+                Log.d(TAG, "Selected item not known");
+        }
 
         return super.onOptionsItemSelected(item);
     }

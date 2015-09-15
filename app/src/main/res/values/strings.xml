@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">EFELMA</string>
 
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="about_free_software_title">About free software</string>
+    <string name="about_free_software_link">https://www.gnu.org/philosophy/free-sw.en.html</string>
+    <string name="about_fellowshp_title">About fsfe Fellowship</string>
+    <string name="about_fellowship_link">https://fsfe.org/fellowship/index.en.html</string>
 </resources>

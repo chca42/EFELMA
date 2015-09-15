@@ -48,8 +48,8 @@ public class PlussyDisplay {
     private static final int UDP_PORT = 60000;
     private static final int TCP_PORT = 60000;
 
-    private volatile boolean run = false;
     private Thread networkTread;
+    private NetworkRunnable networkRunnable;
     private OnLedChangedListener onLedChangedListener = null;
     private OnConnectinChangedListener onConnectionChagedListener = null;
 
@@ -101,6 +101,7 @@ public class PlussyDisplay {
 
     private class NetworkRunnable implements Runnable {
         Handler handler = new Handler();
+        public volatile boolean run = true;
         private InetAddress listenToSetupBroadcast() {
             byte[] rBuf = new byte[50];
             InetAddress serverAddress = null;
@@ -136,8 +137,10 @@ public class PlussyDisplay {
         private void connect(InetAddress serverAddress) {
             String message = "";
             Socket socket = null;
+            boolean messageReceived = false;
             try {
                 socket = new Socket(serverAddress, TCP_PORT);
+                socket.setSoTimeout(100);
                 handler.post(new ConnectionChangedRunnable(CONNECTION_ESTABLISHED));
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -148,10 +151,13 @@ public class PlussyDisplay {
             while(run) {
                 try {
                     message = in.readLine();
+                    messageReceived = true;
                 } catch (Exception e) {
-                    Log.e(TAG, "Error reading from server");
+                    messageReceived = false;
                 }
-                handler.post(new ReplyRunnable(message));
+                if(messageReceived) {
+                    handler.post(new ReplyRunnable(message));
+                }
             }
             try {
                 if(socket != null) {
@@ -170,15 +176,20 @@ public class PlussyDisplay {
     }
 
     public void startNetworking() {
-        run = true;
-        networkTread = new Thread(new NetworkRunnable());
+        if(networkRunnable != null) {
+            stopNetworking();
+        }
+        networkRunnable = new NetworkRunnable();
+        networkRunnable.run = true;
+        networkTread = new Thread(networkRunnable);
         networkTread.start();
     }
 
     public void stopNetworking() {
-        run = false;
+        networkRunnable.run = false;
         try {
             networkTread.join();
+            networkRunnable = null;
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -40,6 +40,7 @@ public class PlussyLedView extends View {
     private class LedTuple {
         public PointF position;
         public int ledNumber;
+        public int color;
     }
 
     private Paint ledPaint;
@@ -59,13 +60,18 @@ public class PlussyLedView extends View {
 
     private LedTuple ledGuiMap[] = new LedTuple[20];
     private int mapping[] = new int[20];
-    private int ledColor[] = new int[20];
+
+    public interface OnLedChangedListener {
+        void onChange(int led, int color);
+    }
+
+    private OnLedChangedListener listener;
 
     public PlussyLedView(Context context, AttributeSet attrs) {
         super(context, attrs);
         for(int i = 0; i < 20; i++) {
             ledGuiMap[i] = new LedTuple();
-            ledColor[i] = 0xff009900;
+            ledGuiMap[i].color = 0xff009900;
         }
 
         // init paint
@@ -143,7 +149,7 @@ public class PlussyLedView extends View {
         canvas.drawCircle(cursorPos.x, cursorPos.y, cursorRadius, cursorPaint);
         for(int i = 0; i < 20; i++) {
             LedTuple ledm = ledGuiMap[i];
-            ledPaint.setColor(ledColor[ledGuiMap[i].ledNumber]);
+            ledPaint.setColor(ledm.color);
             canvas.drawCircle(ledm.position.x, ledm.position.y, ledRadius, ledPaint);
         }
     }
@@ -152,15 +158,19 @@ public class PlussyLedView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         float tx = event.getX();
         float ty = event.getY();
-        for(LedTuple led : ledGuiMap) {
+        for(int i = 0; i < 20; i++) {
+            LedTuple led = ledGuiMap[i];
             if((led.position.x - ledRadius < tx && tx < led.position.x + ledRadius) &&
                     (led.position.y - ledRadius < ty && ty < led.position.y + ledRadius)) {
                 PointF lastCursorPos = cursorPos;
                 cursorPos = led.position;
-                selectedLed = led.ledNumber;
-                ledColor[selectedLed] = colorAtCursor;
+                selectedLed = i;
+                ledGuiMap[selectedLed].color = colorAtCursor;
                 if(lastCursorPos != cursorPos) {
                     this.invalidate();
+                    if(listener != null) {
+                        listener.onChange(ledGuiMap[selectedLed].ledNumber, ledGuiMap[selectedLed].color);
+                    }
                 }
                 break;
             }
@@ -170,12 +180,19 @@ public class PlussyLedView extends View {
 
     public void setColourAtCursor(int color) {
         colorAtCursor = color;
-        ledColor[selectedLed] = colorAtCursor;
+        ledGuiMap[selectedLed].color = colorAtCursor;
+        if(listener != null) {
+            listener.onChange(ledGuiMap[selectedLed].ledNumber, ledGuiMap[selectedLed].color);
+        }
         invalidate();
     }
 
     public void setMapping(int mapping[]) {
         this.mapping = mapping;
         invalidate();
+    }
+
+    void setOnLedChangedListener(OnLedChangedListener listener) {
+        this.listener = listener;
     }
 }

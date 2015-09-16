@@ -5,4 +5,6 @@
     <string name="about_free_software_link">https://www.gnu.org/philosophy/free-sw.en.html</string>
     <string name="about_fellowshp_title">About fsfe Fellowship</string>
     <string name="about_fellowship_link">https://fsfe.org/fellowship/index.en.html</string>
+    <string name="f_droid_title">F-Droid</string>
+    <string name="f_droid_link">https://f-droid.org/</string>
 </resources>

@@ -85,16 +85,25 @@ public class MainActivity extends AppCompatActivity {
         plussyView.setOnLedChangedListener(new PlussyLedView.OnLedChangedListener() {
             @Override
             public void onChange(int led, int color) {
-                plussyDisplay.setLed(led, color);
+                if (plussyDisplay.getNetworkState() == PlussyDisplay.CONNECTION_ESTABLISHED) {
+                    plussyDisplay.setLed(led, color);
+                }
             }
         });
-        plussyDisplay.setOnConnectionChagedListener(new PlussyDisplay.OnConnectinChangedListener() {
+        plussyDisplay.setOnConnectionChangedListener(new PlussyDisplay.OnConnectionChangedListener() {
             @Override
             public void onChange(int state) {
-                if(state == PlussyDisplay.CONNECTION_ESTABLISHED) {
+                if (state == PlussyDisplay.CONNECTION_ESTABLISHED) {
                     connectionProgressBar.setVisibility(View.GONE);
                     connectionEstablishedView.setVisibility(View.VISIBLE);
+                    plussyDisplay.requestMatrixState();
                 }
+            }
+        });
+        plussyDisplay.setOnMatrixStateReceivedListener(new PlussyDisplay.OnMatrixStateReceivedListener() {
+            @Override
+            public void onReceived(int[] colors) {
+                plussyView.updateMatrix(colors);
             }
         });
     }
@@ -134,6 +143,9 @@ public class MainActivity extends AppCompatActivity {
                 intent.setData(Uri.parse(getString(R.string.about_fellowship_link)));
                 startActivity(intent);
                 break;
+            case R.id.menu_item_f_droid:
+                intent.setData(Uri.parse(getString(R.string.f_droid_link)));
+                startActivity(intent);
             default:
                 Log.d(TAG, "Selected item not known");
         }

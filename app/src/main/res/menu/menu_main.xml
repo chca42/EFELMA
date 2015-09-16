@@ -5,4 +5,6 @@
         android:title="@string/about_free_software_title" />
     <item android:id="@+id/menu_item_about_fellowship"
         android:title="@string/about_fellowshp_title" />
+    <item android:id="@+id/menu_item_f_droid"
+        android:title="@string/f_droid_title" />
 </menu>

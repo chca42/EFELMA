@@ -1,6 +1,5 @@
 package org.schabi.efelma;
 
-import android.accounts.NetworkErrorException;
 import android.os.Handler;
 import android.util.Log;
 
@@ -43,6 +42,7 @@ public class PlussyDisplay {
     public static final int NOT_CONNECTED = 0;
     public static final int CONNECTION_ESTABLISHED = 1;
     public static final int CONNECTION_FAILED = 2;
+    private int networkState = NOT_CONNECTED;
 
     private static final String BROADCAST_IP = "255.255.255.255";
     private static final int UDP_PORT = 60000;
@@ -50,17 +50,17 @@ public class PlussyDisplay {
 
     private Thread networkTread;
     private NetworkRunnable networkRunnable;
-    private OnLedChangedListener onLedChangedListener = null;
-    private OnConnectinChangedListener onConnectionChagedListener = null;
+    private OnMatrixStateReceivedListener onMatrixStateReceivedListener = null;
+    private OnConnectionChangedListener onConnectionChangedListener = null;
 
     PrintWriter out;
     BufferedReader in;
 
-    public interface OnLedChangedListener{
-        void onChange(int led, int color);
+    public interface OnMatrixStateReceivedListener {
+        void onReceived(int colors[]);
     }
 
-    public interface OnConnectinChangedListener {
+    public interface OnConnectionChangedListener {
         void onChange(int state);
     }
 
@@ -71,10 +71,21 @@ public class PlussyDisplay {
         }
         @Override
         public void run() {
-            if (onConnectionChagedListener != null) {
-                onConnectionChagedListener.onChange(state);
+            networkState = state;
+            if (onConnectionChangedListener != null) {
+                onConnectionChangedListener.onChange(state);
             }
         }
+    }
+
+    private int[] parseMatrixUpdate(String message) {
+        message = message.substring(1, message.length());
+        int t[] = new int[20];
+        for(int i = 0; i < 20; i++) {
+            String ledValS = message.substring(i*6, i*6 + 6);
+            t[i] = Integer.valueOf(ledValS, 16);
+        }
+        return t;
     }
 
     private class ReplyRunnable implements Runnable {
@@ -91,10 +102,14 @@ public class PlussyDisplay {
                 case "?":
                     Log.e(TAG, "ERROR: wrong command send to server");
                     break;
-                case "M":
-                    break;
                 default:
-                    Log.e(TAG, "ERROR: can't handle command: " + message);
+                    if(message.contains("M") || message.contains("R")) {
+                        if(onMatrixStateReceivedListener != null) {
+                            onMatrixStateReceivedListener.onReceived(parseMatrixUpdate(message));
+                        }
+                    } else {
+                        Log.e(TAG, "ERROR: can't handle command: " + message);
+                    }
             }
         }
     }
@@ -141,11 +156,13 @@ public class PlussyDisplay {
             try {
                 socket = new Socket(serverAddress, TCP_PORT);
                 socket.setSoTimeout(100);
-                handler.post(new ConnectionChangedRunnable(CONNECTION_ESTABLISHED));
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                handler.post(new ConnectionChangedRunnable(CONNECTION_ESTABLISHED));
             } catch(Exception e) {
                 Log.e(TAG, "Error could not set up connection to server.");
+                handler.post(new ConnectionChangedRunnable(CONNECTION_FAILED));
+                return;
             }
 
             while(run) {
@@ -209,7 +226,20 @@ public class PlussyDisplay {
         out.flush();
     }
 
-    public void setOnConnectionChagedListener(OnConnectinChangedListener connectionChagedListener) {
-        this.onConnectionChagedListener = connectionChagedListener;
+    public void requestMatrixState() {
+        out.println("r");
+        out.flush();
+    }
+
+    public void setOnConnectionChangedListener(OnConnectionChangedListener connectionChagedListener) {
+        this.onConnectionChangedListener = connectionChagedListener;
+    }
+
+    public void setOnMatrixStateReceivedListener(OnMatrixStateReceivedListener onMatrixStateReceivedListener) {
+        this.onMatrixStateReceivedListener = onMatrixStateReceivedListener;
+    }
+
+    public int getNetworkState() {
+        return networkState;
     }
 }

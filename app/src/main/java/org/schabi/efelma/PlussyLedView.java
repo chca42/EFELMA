@@ -187,12 +187,19 @@ public class PlussyLedView extends View {
         invalidate();
     }
 
+    public void updateMatrix(int color[]) {
+        for(int i = 0; i < 20; i++) {
+            ledGuiMap[i].color = (0xff << 24) | (color[ledGuiMap[i].ledNumber] & 0xffffff);
+        }
+        invalidate();
+    }
+
     public void setMapping(int mapping[]) {
         this.mapping = mapping;
         invalidate();
     }
 
-    void setOnLedChangedListener(OnLedChangedListener listener) {
+    public void setOnLedChangedListener(OnLedChangedListener listener) {
         this.listener = listener;
     }
 }

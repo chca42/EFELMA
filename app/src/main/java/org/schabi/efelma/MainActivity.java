@@ -43,6 +43,11 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar connectionProgressBar;
     private ImageView connectionEstablishedView;
 
+    // needed to control sending limitation
+    private boolean allowSendingCommand = true;
+    private int lastLed = -1;
+    private int lastColor = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,7 +91,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChange(int led, int color) {
                 if (plussyDisplay.getNetworkState() == PlussyDisplay.CONNECTION_ESTABLISHED) {
-                    plussyDisplay.setLed(led, color);
+                    if(allowSendingCommand) {
+                        plussyDisplay.setLed(led, color);
+                        allowSendingCommand = false;
+                        lastLed = lastColor = -1;
+                    } else {
+                        lastLed = led;
+                        lastColor = color;
+                    }
                 }
             }
         });
@@ -104,6 +116,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceived(int[] colors) {
                 plussyView.updateMatrix(colors);
+                if(lastLed != -1) {
+                    plussyDisplay.setLed(lastLed, lastColor);
+                    lastLed = lastColor = -1;
+                } else {
+                    allowSendingCommand = true;
+                }
             }
         });
     }

@@ -120,25 +120,25 @@ public class PlussyLedView extends View {
     }
 
     @Override
-    protected void onMeasure(int widthMesuereSpec, int heightMeasureSpec) {
-        if (MeasureSpec.getMode(widthMesuereSpec) == MeasureSpec.EXACTLY &&
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY &&
                 MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY) {
-            super.onMeasure(widthMesuereSpec, heightMeasureSpec);
-        }else if (MeasureSpec.getMode(widthMesuereSpec) == MeasureSpec.AT_MOST &&
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        }else if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.AT_MOST &&
                 MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(MeasureSpec.getSize(widthMesuereSpec),
+            setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),
                     MeasureSpec.getSize(heightMeasureSpec));
-        } else if(MeasureSpec.getMode(widthMesuereSpec) == MeasureSpec.EXACTLY &&
+        } else if(MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY &&
                 MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(MeasureSpec.getSize(widthMesuereSpec),
-                    MeasureSpec.getSize(widthMesuereSpec));
-        } else if(MeasureSpec.getMode(widthMesuereSpec) == MeasureSpec.AT_MOST &&
+            setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),
+                    MeasureSpec.getSize(widthMeasureSpec));
+        } else if(MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.AT_MOST &&
                 MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY) {
             setMeasuredDimension(MeasureSpec.getSize(heightMeasureSpec),
                     MeasureSpec.getSize(heightMeasureSpec));
         } else {
             Log.e(TAG, "Measurment mode unknown please use other options on layout_width and layout_height");
-            super.onMeasure(widthMesuereSpec, heightMeasureSpec);
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
     }
 
